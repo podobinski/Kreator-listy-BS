@@ -16,7 +16,7 @@ def extract_website_data(url, driver_path):
     try:
         while True:
             print("Waiting for the company elements to be visible...")
-            WebDriverWait(driver, 30).until(
+            WebDriverWait(driver, 5).until(
                 EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "#entityTable dl"))
             )
             print("Company elements are visible.")
