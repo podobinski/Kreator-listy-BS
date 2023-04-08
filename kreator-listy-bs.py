@@ -14,27 +14,44 @@ def extract_website_data(url, driver_path):
     data = []
 
     try:
-        print("Waiting for the company elements to be visible...")
-        WebDriverWait(driver, 30).until(
-            EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "#entityTable dl"))
-        )
-        print("Company elements are visible.")
+        while True:
+            print("Waiting for the company elements to be visible...")
+            WebDriverWait(driver, 30).until(
+                EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "#entityTable dl"))
+            )
+            print("Company elements are visible.")
 
-        company_list = driver.find_elements(By.CSS_SELECTOR, "#entityTable dl")
-        print(f"Found {len(company_list)} company elements.")
-        
-        for company in company_list:
-            name_element = company.find_element(By.XPATH, "./dd[1]/h3")
-            name = re.sub(r'<span.*?>Nazwa<\/span>', '', name_element.get_attribute("innerHTML")).strip()
-            try:
-                www_address = company.find_element(By.XPATH, "./dd[2]/ul/li[6]/a").text.strip()
-                if "otwiera się w nowej karcie" in www_address:
-                    www_address = www_address.replace("otwiera się w nowej karcie", "").strip()
-            except Exception as e:
-                print(f"Error extracting wwwAddress for {name}: {e}")
-                www_address = ""
-            print(f"Extracted name: {name}, wwwAddress: {www_address}")
-            data.append({"Name": name, "WWW Address": www_address})
+            company_list = driver.find_elements(By.CSS_SELECTOR, "#entityTable dl")
+            print(f"Found {len(company_list)} company elements.")
+            
+            for company in company_list:
+                name_element = company.find_element(By.XPATH, "./dd[1]/h3")
+                name = re.sub(r'<span.*?>Nazwa<\/span>', '', name_element.get_attribute("innerHTML")).strip()
+                try:
+                    www_address = company.find_element(By.XPATH, "./dd[2]/ul/li[6]/a").text.strip()
+                    if "otwiera się w nowej karcie" in www_address:
+                        www_address = www_address.replace("otwiera się w nowej karcie", "").strip()
+                except Exception as e:
+                    print(f"Error extracting wwwAddress for {name}: {e}")
+                    www_address = ""
+                print(f"Extracted name: {name}, wwwAddress: {www_address}")
+                data.append({"Name": name, "WWW Address": www_address})
+
+            # Check if the "next 20" button exists, and click it if it does
+            next_page_buttons = driver.find_elements(By.CSS_SELECTOR, "#nextPage")
+            if next_page_buttons:
+                next_page_button = next_page_buttons[0]
+                
+                # Use JavaScript to click the button
+                driver.execute_script("arguments[0].click();", next_page_button)
+
+                # Wait for the next page to load before proceeding
+                WebDriverWait(driver, 30).until(
+                    EC.staleness_of(company_list[-1])
+                )
+            else:
+                break
+
     except Exception as e:
         print(f"Error extracting data: {e}")
     finally:
