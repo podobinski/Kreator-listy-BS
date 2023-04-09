@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from facebook_checker import find_facebook_profile
 from excel_handler import save_to_excel
+from affiliation_checker import affiliation_check 
 
 
 def extract_website_data(url, driver_path):
@@ -40,6 +41,7 @@ def extract_website_data(url, driver_path):
 
                 name_element = company.find_element(By.XPATH, "./dd[1]/h3")
                 name = re.sub(r'<span.*?>Nazwa<\/span>', '', name_element.get_attribute("innerHTML")).strip()
+                
                 try:
                     www_address = company.find_element(By.XPATH, "./dd[2]/ul/li[6]/a").text.strip()
                     if "otwiera się w nowej karcie" in www_address:
@@ -56,13 +58,15 @@ def extract_website_data(url, driver_path):
                         new_window_handle = [handle for handle in driver.window_handles if handle != main_window_handle][0]
                         driver.switch_to.window(new_window_handle)
                         facebook_url = find_facebook_profile(www_address, driver)
+                        affiliation = affiliation_check(www_address)
+                        
                     finally:
                         if new_window_handle:
                             driver.close()
                             driver.switch_to.window(main_window_handle)
                 
-                print(f"Extracted name: {name}, wwwAddress: {www_address}, Facebook URL: {facebook_url}")
-                data.append({"Name": name, "WWW Address": www_address, "Facebook URL": facebook_url})
+                print(f"Extracted name: {name}, wwwAddress: {www_address}, Facebook URL: {facebook_url}, Affiliation: {affiliation}")
+                data.append({"Name": name, "WWW Address": www_address, "Facebook URL": facebook_url, "Zrzeszenie": affiliation})
 
             next_page_buttons = driver.find_elements(By.CSS_SELECTOR, "#nextPage")
             if next_page_buttons:
