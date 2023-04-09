@@ -6,18 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-def find_facebook_profile(www_address, driver):
-    try:
-        if not www_address.startswith("http://") and not www_address.startswith("https://"):
-            www_address = "https://" + www_address
-
-        driver.get(www_address)
-        facebook_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'facebook.com')]")
-        if facebook_links:
-            return facebook_links[0].get_attribute('href')
-    except Exception as e:
-        print(f"Error finding Facebook profile for {www_address}: {e}")
-    return None
+from facebook_checker import find_facebook_profile
+from excel_handler import save_to_excel
 
 
 def extract_website_data(url, driver_path):
@@ -96,11 +86,6 @@ def extract_website_data(url, driver_path):
 
     return data
 
-
-def save_to_excel(data, output_file):
-    df = pd.DataFrame(data)
-    df.to_excel(output_file, index=False, engine="openpyxl")
-    print(f"Data saved to {output_file}")
 
 if __name__ == "__main__":
     url = "https://www.knf.gov.pl/podmioty/Podmioty_sektora_bankowego/banki_spoldzielcze"
